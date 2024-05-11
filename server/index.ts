@@ -3,7 +3,7 @@ const http = require('http')
 const app = express()
 const server = http.createServer(app)
 
-import { Server } from 'socket.io'
+import { Server, Socket } from 'socket.io'
 const io = new Server(server, {
   cors: {
     origin: '*',
@@ -19,20 +19,24 @@ type DrawLine = {
 }
 
 io.on('connection', (socket) => {
-  socket.on('client-ready', () => {
-    socket.broadcast.emit('get-canvas-state')
+  socket.on('client-ready', (teamId: string) => {
+    io.to(teamId).emit('get-canvas-state')
   })
 
-  socket.on('canvas-state', (state) => {
-    console.log('received canvas state')
-    socket.broadcast.emit('canvas-state-from-server', state)
+  socket.on('canvas-state', (state, teamId: string) => {
+    io.to(teamId).emit('canvas-state-from-server', state)
   })
 
-  socket.on('draw-line', ({ prevPoint, currentPoint, color }: DrawLine) => {
-    socket.broadcast.emit('draw-line', { prevPoint, currentPoint, color })
+  socket.on('draw-line', ({ prevPoint, currentPoint, color }: DrawLine, teamId: string) => {
+    io.to(teamId).emit('draw-line', { prevPoint, currentPoint, color })
   })
 
-  socket.on('clear', () => io.emit('clear'))
+  socket.on('team-joined', (teamId: string) => {
+    console.log(`Socket ${socket.id} joining team ${teamId}`);
+    socket.join(teamId)
+  })
+
+  socket.on('clear', (teamId) => io.to(teamId).emit('clear')) 
 })
 
 server.listen(3001, () => {

@@ -1,84 +1,72 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 "use client"
 
-import { FC, useEffect, useState } from 'react'
-import { useDraw } from '../hooks/useDraw'
-import { ChromePicker } from 'react-color'
-
+import { FC, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { io } from 'socket.io-client'
-import { drawLine } from '../utils/drawLine'
-const socket = io('https://draw-and-guess-0958.onrender.com/')
+
 
 interface pageProps {}
 
-type DrawLineProps = {
-  prevPoint: Point | null
-  currentPoint: Point
-  color: string
-}
+const socket = io('https://draw-and-guess-0958.onrender.com')
+
 
 const page: FC<pageProps> = ({}) => {
-  const [color, setColor] = useState<string>('#000')
-  const { canvasRef, onMouseDown, clear } = useDraw(createLine)
+  const router = useRouter()
+  const [teamId, setTeamId] = useState('');
 
-  useEffect(() => {
-    const ctx = canvasRef.current?.getContext('2d')
+  const generateTeamId = () => {
+    // Generate a unique team ID (e.g., using UUID)
+    const newTeamId = generateRandomId(); // Call the function to generate a random ID
+    setTeamId(newTeamId);
+    
+  };
 
-    socket.emit('client-ready')
+  const joinTeam = () => {
+    socket.emit('team-joined', teamId);
+    router.push(`/team/${teamId}`);
+  };
 
-    socket.on('get-canvas-state', () => {
-      if (!canvasRef.current?.toDataURL()) return
-      console.log('sending canvas state')
-      socket.emit('canvas-state', canvasRef.current.toDataURL())
-    })
-
-    socket.on('canvas-state-from-server', (state: string) => {
-      console.log('I received the state')
-      const img = new Image()
-      img.src = state
-      img.onload = () => {
-        ctx?.drawImage(img, 0, 0)
-      }
-    })
-
-    socket.on('draw-line', ({ prevPoint, currentPoint, color }: DrawLineProps) => {
-      if (!ctx) return console.log('no ctx here')
-      drawLine({ prevPoint, currentPoint, ctx, color })
-    })
-
-    socket.on('clear', clear)
-
-    return () => {
-      socket.off('draw-line')
-      socket.off('get-canvas-state')
-      socket.off('canvas-state-from-server')
-      socket.off('clear')
+  // Function to generate a random alphanumeric ID
+  const generateRandomId = () => {
+    const alphanumeric = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let newId = '';
+    for (let i = 0; i < 8; i++) {
+      newId += alphanumeric.charAt(Math.floor(Math.random() * alphanumeric.length));
     }
-  }, [canvasRef])
+    return newId;
+  };
 
-  function createLine({ prevPoint, currentPoint, ctx }: Draw) {
-    socket.emit('draw-line', { prevPoint, currentPoint, color })
-    drawLine({ prevPoint, currentPoint, ctx, color })
-  }
 
   return (
-    <div className='w-screen h-screen bg-white flex justify-center items-center'>
-      <div className='flex flex-col gap-10 pr-10'>
-        <ChromePicker color={color} onChange={(e) => setColor(e.hex)} />
-        <button
-          type='button'
-          className='p-2 rounded-md border border-black'
-          onClick={() => socket.emit('clear')}>
-          Clear canvas
-        </button>
+    <div className="flex flex-col items-center justify-center h-screen">
+      <h1 className="text-4xl mb-8">Welcome to the Drawing Game</h1>
+      <img src="welcome.jpg" alt="Welcome" className="mb-8" width={400} height={400} />
+      <div className="flex flex-col gap-4">
+        <h2 className="text-2xl">Team ID</h2>
+        <input
+          type="text"
+          className="p-2 rounded-md border border-black"
+          value={teamId}
+          onChange={(e) => setTeamId(e.target.value)}
+          placeholder="Enter team ID or generate"
+        />
+        <div className="flex gap-4">
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            onClick={joinTeam}
+            disabled={!teamId.trim()}
+          >
+            Join Team
+          </button>
+          <button
+            className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+            onClick={generateTeamId}
+          >
+            Generate Team ID
+          </button>
+        </div>
       </div>
-      <canvas
-        ref={canvasRef}
-        onMouseDown={onMouseDown}
-        width={750}
-        height={750}
-        className='border border-black rounded-md'
-      />
     </div>
   )
 }

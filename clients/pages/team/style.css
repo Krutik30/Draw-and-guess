@@ -1,0 +1,36 @@
+/* styles.css */
+
+/* Outer container */
+.outer-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    width: 100vw;
+}
+
+/* Left container */
+.left-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 20%;
+}
+
+/* Right container */
+.right-container {
+    width: 80%;
+}
+
+/* Choose color heading */
+.choose-color {
+    font-size: 1.5rem;
+}
+
+/* Canvas */
+.canvas {
+    border: 1px solid #000;
+    border-radius: 0.5rem;
+    /* Adjust border radius as needed */
+}
