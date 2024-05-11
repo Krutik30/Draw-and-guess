@@ -20,15 +20,15 @@ type DrawLine = {
 
 io.on('connection', (socket) => {
   socket.on('client-ready', (teamId: string) => {
-    io.to(teamId).emit('get-canvas-state')
+    io.sockets.in(teamId).emit('get-canvas-state')
   })
 
   socket.on('canvas-state', (state, teamId: string) => {
-    io.to(teamId).emit('canvas-state-from-server', state)
+    io.sockets.in(teamId).emit('canvas-state-from-server', state)
   })
 
   socket.on('draw-line', ({ prevPoint, currentPoint, color }: DrawLine, teamId: string) => {
-    io.to(teamId).emit('draw-line', { prevPoint, currentPoint, color })
+    io.sockets.in(teamId).emit('draw-line', { prevPoint, currentPoint, color })
   })
 
   socket.on('team-joined', (teamId: string) => {

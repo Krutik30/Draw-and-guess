@@ -1,13 +1,14 @@
 "use client"
+
 import { ChromePicker } from 'react-color'
 import { io } from 'socket.io-client'
 
-const socket = io('https://draw-and-guess-0958.onrender.com')
+const socket = io(socketPort || 'http://localhost:3001')
 
-import { useRouter } from 'next/router'
 import React, { useEffect, useState } from 'react'
 import { drawLine } from '../../utils/drawLine'
 import { useDraw } from '../../hooks/useDraw'
+import { socketPort } from '../../utils/config'
 import './style.css';
 
 type DrawLineProps = {
@@ -18,18 +19,18 @@ type DrawLineProps = {
 
 export default function Page() {
 
-    const router = useRouter()
-    const teamId = router.query.teamId;
 
     const [color, setColor] = useState<string>('#000')
     const { canvasRef, onMouseDown, clear } = useDraw(createLine)
 
+    const teamId = typeof window !== 'undefined' ? localStorage.getItem('teamId') : null;
+
     useEffect(() => {
         const ctx = canvasRef.current?.getContext('2d')
-
+        
         socket.emit('client-ready', teamId)
 
-        socket.on('get-canvas-state', () => {
+        socket.on('get-canvas-state',() => {
             if (!canvasRef.current?.toDataURL()) return
             console.log('sending canvas state')
             socket.emit('canvas-state', canvasRef.current.toDataURL(), teamId)
@@ -50,14 +51,14 @@ export default function Page() {
         })
 
         socket.on('clear', clear)
-
+    
         return () => {
             socket.off('draw-line')
             socket.off('get-canvas-state')
             socket.off('canvas-state-from-server')
             socket.off('clear')
         }
-    }, [canvasRef])
+    }, [canvasRef, clear, teamId])
 
     function createLine({ prevPoint, currentPoint, ctx }: Draw) {
         socket.emit('draw-line', { prevPoint, currentPoint, color }, teamId)

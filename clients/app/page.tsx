@@ -4,11 +4,12 @@
 import { FC, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { io } from 'socket.io-client'
+import { socketPort } from '../utils/config'
 
 
 interface pageProps {}
 
-const socket = io('https://draw-and-guess-0958.onrender.com')
+const socket = io(socketPort || 'http://localhost:3001')
 
 
 const page: FC<pageProps> = ({}) => {
@@ -24,6 +25,7 @@ const page: FC<pageProps> = ({}) => {
 
   const joinTeam = () => {
     socket.emit('team-joined', teamId);
+    localStorage.setItem('teamId', teamId)
     router.push(`/team/${teamId}`);
   };
 
