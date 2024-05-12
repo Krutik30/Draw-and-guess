@@ -3,12 +3,10 @@
 import { ChromePicker } from 'react-color'
 import { io } from 'socket.io-client'
 
-const socket = io(socketPort || 'http://localhost:3001')
-
 import React, { useEffect, useState } from 'react'
 import { drawLine } from '../../utils/drawLine'
 import { useDraw } from '../../hooks/useDraw'
-import { socketPort } from '../../utils/config'
+import { socket, socketPort } from '../../utils/config'
 import './style.css';
 
 type DrawLineProps = {
@@ -29,6 +27,12 @@ export default function Page() {
         const ctx = canvasRef.current?.getContext('2d')
         
         socket.emit('client-ready', teamId)
+
+        // socket.emit('team-check', teamId);
+
+        // socket.on('team-check-from-server', () => {
+        //     console.log('team check received')
+        // });
 
         socket.on('get-canvas-state',() => {
             if (!canvasRef.current?.toDataURL()) return
@@ -54,6 +58,7 @@ export default function Page() {
     
         return () => {
             socket.off('draw-line')
+            socket.off('team-check-from-server')
             socket.off('get-canvas-state')
             socket.off('canvas-state-from-server')
             socket.off('clear')

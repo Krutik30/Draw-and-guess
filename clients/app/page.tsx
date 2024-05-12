@@ -4,13 +4,10 @@
 import { FC, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { io } from 'socket.io-client'
-import { socketPort } from '../utils/config'
+import { socket, socketPort } from '../utils/config'
 
 
 interface pageProps {}
-
-const socket = io(socketPort || 'http://localhost:3001')
-
 
 const page: FC<pageProps> = ({}) => {
   const router = useRouter()
