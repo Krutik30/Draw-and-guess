@@ -7,4 +7,4 @@ export const enviroment = process.env.enviroment;
 
 export const socketPort = enviroment === 'local' ? process.env.socketLocal : process.env.socketProd;
 
-export const socket = io(socketPort || 'http://localhost:3001')
+export const socket = io('https://draw-and-guess-0958.onrender.com' || 'http://localhost:3001')
